@@ -49,8 +49,3 @@ The following options can be passed before any subcommand:
 
 `pymgr` relies on `pyproject.toml` (specifically under the `[tool.pymgr]` block). If missing, `pymgr init` will scaffold this configuration. The lockfile (`pymgr.lock`) dictates reproducible builds and tracks exact version hashes.
 
-## Architecture Guidelines
-
-* Written in strict Rust utilizing `tokio` for async parallel I/O.
-* Network boundaries enforce HTTP caching locally (`.pymgr/cache`).
-* No codebase comments per project guidelines. Code serves as its own documentation.
