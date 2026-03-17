@@ -31,6 +31,7 @@ rayon = "1"
 futures = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
 semver = { version = "1", features = ["serde"] }
+comfy-table = "7.2.2"
 
 [dev-dependencies]
 assert_cmd = "2"

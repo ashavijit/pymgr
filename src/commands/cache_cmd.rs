@@ -23,14 +23,17 @@ pub fn exec_clear(target: Option<&str>) -> PymgrResult<()> {
 
 pub fn exec_info() -> PymgrResult<()> {
     let stats = cache::cache_stats()?;
-    println!("Cache Information:");
-    println!("  Metadata Cache:");
-    println!("    Entries: {}", stats.metadata_entries);
-    println!("    Size:    {}", cache::CacheStats::format_size(stats.metadata_size));
-    println!("  Wheel Cache:");
-    println!("    Entries: {}", stats.wheel_entries);
-    println!("    Size:    {}", cache::CacheStats::format_size(stats.wheel_size));
-    println!("  Total Size:  {}", cache::CacheStats::format_size(stats.total_size()));
+    let mut table = comfy_table::Table::new();
+    table.load_preset(comfy_table::presets::UTF8_FULL);
+    table.set_header(vec!["Metric", "Value"]);
+    
+    table.add_row(vec!["Metadata Cache Entries", &stats.metadata_entries.to_string()]);
+    table.add_row(vec!["Metadata Cache Size", &cache::CacheStats::format_size(stats.metadata_size)]);
+    table.add_row(vec!["Wheel Cache Entries", &stats.wheel_entries.to_string()]);
+    table.add_row(vec!["Wheel Cache Size", &cache::CacheStats::format_size(stats.wheel_size)]);
+    table.add_row(vec!["Total Cache Size", &cache::CacheStats::format_size(stats.total_size())]);
+    
+    println!("Cache Information:\n{}", table);
     Ok(())
 }
 

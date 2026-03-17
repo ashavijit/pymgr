@@ -97,6 +97,15 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
     
     let mut report = Vec::new();
 
+    let mut table = comfy_table::Table::new();
+    table.load_preset(comfy_table::presets::UTF8_FULL);
+    table.set_header(vec![
+        comfy_table::Cell::new("Package").fg(comfy_table::Color::Red),
+        comfy_table::Cell::new("Version").fg(comfy_table::Color::Red),
+        comfy_table::Cell::new("Vuln ID").fg(comfy_table::Color::Red),
+        comfy_table::Cell::new("Summary").fg(comfy_table::Color::Red),
+    ]);
+
     for (i, result) in results.into_iter().enumerate() {
         let pkg = &lockfile.packages[i];
         if let Some(vulns) = result.vulns {
@@ -110,9 +119,12 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
                 }));
 
                 if !json {
-                    println!("\n[!] Vulnerability found in {} == {}", pkg.name, pkg.version);
-                    println!("    ID: {}", vuln.id);
-                    println!("    Summary: {}", vuln.summary.unwrap_or_else(|| "No summary available".to_string()));
+                    table.add_row(vec![
+                        pkg.name.clone(),
+                        pkg.version.clone(),
+                        vuln.id.clone(),
+                        vuln.summary.clone().unwrap_or_else(|| "No summary available".to_string()),
+                    ]);
                 }
             }
         }
@@ -126,6 +138,7 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
     } else if total_vulns == 0 {
         output::print_success("No vulnerabilities found! Your environment is secure.");
     } else {
+        println!("\n{}", table);
         output::print_warning(&format!("\nFound {} vulnerabilities. Please update the affected packages.", total_vulns));
     }
 

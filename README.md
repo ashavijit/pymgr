@@ -1,107 +1,56 @@
 # pymgr
 
-<div align="center">
-  <p><strong>A blazing-fast, all-in-one Python environment and package manager written in Rust.</strong></p>
-</div>
+A blazing-fast Python environment manager written in Rust.
 
-`pymgr` is a unified tool that replaces `pip`, `virtualenv`, `pyenv`, `poetry`, and `pipenv`. It manages your Python installations, your virtual environments, and your dependencies—all with extreme, Rust-powered performance.
+`pymgr` is a unified tool for managing Python installations, virtual environments, and package dependencies. It aims to replace PIP, Virtualenv, Pyenv, and pip-tools with a single cohesive interface, focusing on speed through parallel downloads, strict lockfile reproducibility, and an integrated cache layer.
 
----
+## Installation
 
-## 🚀 Why `pymgr` is Better
-
-The Python ecosystem is fragmented. To start a project, you typically need:
-- `pyenv` to install Python
-- `virtualenv` or `venv` to create an environment
-- `pip` or `poetry` to manage dependencies
-
-**`pymgr` does it all natively, faster, and more reliably.**
-
-*   **⚡ Blazing Fast:** Written in pure Rust. Parallel resolution and downloading using `tokio`.
-*   **🔗 Zero-Copy Installs:** Uses a global cache with hardlinks. Installing a package you've downloaded before takes milliseconds and zero extra disk space.
-*   **🐍 Integrated Python Management:** Don't have Python installed? `pymgr` downloads official, isolated Python builds automatically.
-*   **🔒 Deterministic Builds:** Uses a strict `pymgr.lock` file ensuring bit-for-bit reproducible environments.
-*   **💻 Native Shell Integration:** Auto-activates environments without subshells.
-
-## 📊 Performance Benchmarks
-
-`pymgr` is heavily optimized for speed. Here is how it compares against traditional tools (`pip` + `venv`) and other modern managers.
-
-![Performance Benchmarks](./assets/benchmarks.png)
-
-*Note: Benchmarks represent median times on an M2 Mac / Intel i9 on Windows.*
-
-## 🛠️ Usage Log & Features
-
-![Pymgr in Action](./assets/terminal.png)
-
-Here is a real example of what `pymgr` looks like in action.
-
-### 1. Initialize a Project & Environment
-
-Instantly creates an environment, downloading Python automatically if you don't have it.
-
-```console
-❯ pymgr init
-✓ Created environment with Python 3.14.3 at C:\Project\.pymgr/env
-```
-
-### 2. Add Dependencies
-
-Resolves packages, updates `pyproject.toml`, and creates a reproducible `pymgr.lock`.
-
-```console
-❯ pymgr add requests fastapi uvicorn
-⠋ Resolving dependencies...
-✓ Added requests 2.32.5
-✓ Added fastapi 0.110.0
-✓ Added uvicorn 0.28.0
-```
-
-### 3. Run Commands Seamlessly
-
-Run commands strictly inside the virtual environment without needing to activate it manually. No more "is my venv activated?" confusion.
-
-```console
-❯ pymgr run python --version
-Python 3.14.3
-
-❯ pymgr run python -c "import requests; print(requests.__version__)"
-2.32.5
-```
-
-### 4. Manage Global Python Versions
-
-Manage multiple Python versions without native OS dependencies.
-
-```console
-❯ pymgr python install 3.12.3
-⠋ Downloading Python 3.12.3...
-✓ Python 3.12.3 installed to ~/.pymgr/python/3.12.3
-
-❯ pymgr python list
-Installed Python versions
-  3.12.3
-  3.14.3
-```
-
-## 📦 Installation
-
-*(Assuming you have Rust/Cargo installed during development)*
+Requires Rust `1.75+`.
 
 ```bash
-git clone https://github.com/yourusername/pymgr.git
-cd pymgr
 cargo install --path .
 ```
 
-## 🏛️ Architecture
+## Global Options
 
-- **Core Module (`src/env/`)**: Maps virtual environment structures natively across Windows and POSIX.
-- **Resolver Module (`src/resolver/`)**: Implements PubGrub-style dependency resolution interacting with PyPI JSON APIs.
-- **Installer Module (`src/installer/`)**: Uses `tokio` to download and extract wheels `.whl` in parallel, strictly validating SHA-256 digests.
-- **Cache Module (`src/cache.rs`)**: Implements SHA-sharded wheel caching and global hardlinking logic.
+The following options can be passed before any subcommand:
 
-## 📄 License
+## Commands
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+| Command | Arguments | Description |
+|---|---|---|
+| `init` | `[PYTHON_VERSION]` | Initialize a new environment in the current directory |
+| `create` | `<NAME> [PYTHON_VERSION]` | Create a named environment |
+| `activate` | | Print activation script |
+| `deactivate` | | Deactivate current environment |
+| `run` | `<CMD> [ARGS]...` | Run a command inside the environment |
+| `shell` | | Spawn a subshell with the environment active |
+| `python` | `[SUBCOMMAND]` | Manage Python installations (`list`, `install`, `use`, `remove`) |
+| `add` | `<PACKAGES>... [--dev] [--editable]`| Add packages and update lockfile |
+| `remove` | `<PACKAGES>...` | Remove packages |
+| `install` | `[--frozen]` | Install from lockfile or pyproject.toml |
+| `update` | `[PACKAGES]...` | Update packages to latest compatible versions |
+| `sync` | | Sync environment exactly to lockfile |
+| `list` | | List installed packages |
+| `env` | `[SUBCOMMAND]` | Manage environments (`list`, `info`, `remove`) |
+| `shell-init` | `<SHELL>` | Print shell integration script |
+| `self-update`| | Update pymgr itself |
+| `doctor` | | Diagnose environment problems |
+| `workspace` | `[SUBCOMMAND]` | Manage workspaces (`init`, `add`, `list`, `run`) |
+| `export` | `<FORMAT> [--hashes]` | Export environment (`requirements`, `conda`) |
+| `import` | `<FILE>` | Import environment requirement files |
+| `snapshot` | `[SUBCOMMAND]` | Manage rollbacks and snapshots (`create`, `list`, `restore`) |
+| `audit` | `[--json]` | Audit dependencies for vulnerabilities via OSV |
+| `cache` | `[SUBCOMMAND]` | Manage caches (`info`, `clear`, `warm`, `gc`) |
+| `ide` | `<NAME>` | Configure IDE integrations (`vscode`, `pycharm`, `pyright`) |
+
+## Project Configuration
+
+`pymgr` relies on `pyproject.toml` (specifically under the `[tool.pymgr]` block). If missing, `pymgr init` will scaffold this configuration. The lockfile (`pymgr.lock`) dictates reproducible builds and tracks exact version hashes.
+
+## Architecture Guidelines
+
+* Written in strict Rust utilizing `tokio` for async parallel I/O.
+* Network boundaries enforce HTTP caching locally (`.pymgr/cache`).
+* No codebase comments per project guidelines. Code serves as its own documentation.

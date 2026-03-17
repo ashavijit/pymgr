@@ -298,9 +298,17 @@ pub fn exec_list(project_dir: &Path) -> PymgrResult<()> {
         output::print_info("No packages installed");
     } else {
         output::print_header("Installed packages");
+        let mut table = comfy_table::Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.set_header(vec!["Package", "Version"]);
+        
         for pkg in &installed {
-            println!("  {} {}", pkg.name, console::style(&pkg.version).dim());
+            table.add_row(vec![
+                pkg.name.clone(),
+                pkg.version.clone(),
+            ]);
         }
+        println!("\n{}", table);
     }
 
     Ok(())
