@@ -5,8 +5,7 @@ use std::path::PathBuf;
 #[command(
     name = "pymgr",
     about = "A blazing-fast Python environment manager",
-    version,
-    propagate_version = true
+    version
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -51,7 +50,7 @@ pub enum Commands {
     Run {
         #[arg(help = "Command to run")]
         cmd: String,
-        #[arg(trailing_var_arg = true, help = "Arguments for the command")]
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true, help = "Arguments for the command")]
         args: Vec<String>,
     },
 

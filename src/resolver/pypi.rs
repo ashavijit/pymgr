@@ -9,7 +9,9 @@ const PYPI_API_URL: &str = "https://pypi.org/pypi";
 #[derive(Debug, Deserialize)]
 pub struct PypiPackageResponse {
     pub info: PypiPackageInfo,
+    #[serde(default)]
     pub releases: HashMap<String, Vec<PypiRelease>>,
+    #[serde(default)]
     pub urls: Vec<PypiRelease>,
 }
 

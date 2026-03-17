@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use crate::config::pymgr_home;
 use crate::errors::{ErrorCode, PymgrError, PymgrResult};
@@ -110,7 +109,7 @@ fn build_download_url(version: &str) -> PymgrResult<String> {
     }
 }
 
-fn extract_zip(data: &[u8], tmp_dir: &Path, dest: &Path) -> PymgrResult<()> {
+fn extract_zip(data: &[u8], _tmp_dir: &Path, dest: &Path) -> PymgrResult<()> {
     std::fs::create_dir_all(dest)?;
 
     let reader = std::io::Cursor::new(data);

@@ -1,0 +1,6 @@
+package = []
+
+[metadata]
+python = "3.14.3"
+resolver = "pubgrub-v1"
+generated-at = "2026-03-17T04:31:57.949194300+00:00"

@@ -27,3 +27,5 @@ target
 
 .pymgr
 pyproject.toml
+
+.vscode
