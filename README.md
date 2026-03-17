@@ -6,6 +6,20 @@ A blazing-fast Python environment manager written in Rust.
 
 ## Installation
 
+### Unix (macOS / Linux)
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/ashavijit/pymgr/main/install.sh | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/ashavijit/pymgr/main/install.ps1 | iex
+```
+
+### Build from Source
+
 Requires Rust `1.75+`.
 
 ```bash
