@@ -60,6 +60,14 @@ pub async fn fetch_package_info(name: &str) -> PymgrResult<PypiPackageResponse> 
         }
     }
 
+    if crate::config::is_offline_mode() {
+        return Err(PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("Offline mode active: metadata for '{}' not in cache", name),
+        )
+        .with_suggestion(format!("Run `pymgr cache warm` while online")));
+    }
+
     let url = format!("{}/{}/json", PYPI_API_URL, name);
     let client = reqwest::Client::new();
     let response = client.get(&url).send().await.map_err(|e| {
@@ -99,6 +107,14 @@ pub async fn fetch_version_info(name: &str, version: &str) -> PymgrResult<PypiPa
         if let Ok(resp) = serde_json::from_str::<PypiPackageResponse>(&cached) {
             return Ok(resp);
         }
+    }
+
+    if crate::config::is_offline_mode() {
+        return Err(PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("Offline mode active: metadata for '{} {}' not in cache", name, version),
+        )
+        .with_suggestion(format!("Run `pymgr cache warm` while online")));
     }
 
     let url = format!("{}/{}/{}/json", PYPI_API_URL, name, version);
@@ -165,6 +181,10 @@ pub fn find_best_wheel(releases: &[PypiRelease]) -> Option<&PypiRelease> {
     }
 
     wheels.first().copied()
+}
+
+pub fn find_source_dist(releases: &[PypiRelease]) -> Option<&PypiRelease> {
+    releases.iter().find(|r| r.packagetype == "sdist")
 }
 
 pub fn parse_requirement(req: &str) -> (String, Option<String>) {

@@ -16,13 +16,16 @@ mod self_update;
 mod shell;
 
 use clap::Parser;
-use cli::{Cli, Commands, EnvCommands, PythonCommands};
+use cli::{
+    CacheCommands, Cli, Commands, EnvCommands, PythonCommands, SnapshotCommands, WorkspaceCommands,
+};
 use errors::PymgrResult;
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
 
+    crate::config::set_offline_mode(cli.offline);
     output::set_verbose_mode(cli.verbose);
     output::set_json_mode(cli.json);
     output::set_no_color(cli.no_color);
@@ -87,8 +90,8 @@ async fn run(cli: Cli) -> PymgrResult<()> {
             }
         },
 
-        Commands::Add { packages, dev } => {
-            commands::packages::exec_add(&project_dir, &packages, dev).await?;
+        Commands::Add { packages, dev, editable } => {
+            commands::packages::exec_add(&project_dir, &packages, dev, editable).await?;
         }
 
         Commands::Remove { packages } => {
@@ -133,6 +136,43 @@ async fn run(cli: Cli) -> PymgrResult<()> {
 
         Commands::Doctor => {
             commands::doctor::exec(&project_dir)?;
+        }
+
+        Commands::Workspace(subcmd) => match subcmd {
+            WorkspaceCommands::Init => commands::workspace::exec_init()?,
+            WorkspaceCommands::List => commands::workspace::exec_list()?,
+        },
+
+        Commands::Export { format, hashes } => {
+            commands::export_reqs::exec(format.as_deref(), hashes)?;
+        }
+
+        Commands::Import { file } => {
+            commands::import_reqs::exec(&file).await?;
+        }
+
+        Commands::Snapshot(subcmd) => match subcmd {
+            SnapshotCommands::List => commands::snapshot::exec_list()?,
+            SnapshotCommands::Rollback { id } => commands::snapshot::exec_rollback(id.as_deref())?,
+            SnapshotCommands::Diff { id } => commands::snapshot::exec_diff(&id)?,
+            SnapshotCommands::Gc => commands::snapshot::exec_gc()?,
+        },
+
+        Commands::Audit { json } => {
+            commands::audit::exec(json).await?;
+        }
+
+        Commands::Cache(subcmd) => match subcmd {
+            CacheCommands::Clear { target } => commands::cache_cmd::exec_clear(target.as_deref())?,
+            CacheCommands::Gc { dry_run, aggressive } => {
+                commands::cache_cmd::exec_gc(dry_run, aggressive)?
+            }
+            CacheCommands::Info => commands::cache_cmd::exec_info()?,
+            CacheCommands::Warm { packages } => commands::cache_cmd::exec_warm(&packages).await?,
+        },
+
+        Commands::Ide { name } => {
+            commands::ide::exec(&name)?;
         }
     }
 

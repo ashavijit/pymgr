@@ -22,6 +22,9 @@ pub struct Cli {
 
     #[arg(long, global = true, help = "Override environment path")]
     pub env_path: Option<PathBuf>,
+
+    #[arg(long, global = true, help = "Run in offline mode")]
+    pub offline: bool,
 }
 
 #[derive(Subcommand)]
@@ -66,6 +69,8 @@ pub enum Commands {
         packages: Vec<String>,
         #[arg(long, help = "Add as dev dependency")]
         dev: bool,
+        #[arg(short, long, help = "Install in editable mode")]
+        editable: bool,
     },
 
     #[command(about = "Remove packages")]
@@ -106,6 +111,41 @@ pub enum Commands {
 
     #[command(about = "Diagnose environment problems")]
     Doctor,
+
+    #[command(subcommand, about = "Manage workspaces")]
+    Workspace(WorkspaceCommands),
+
+    #[command(about = "Export environment")]
+    Export {
+        #[arg(help = "Format (requirements, conda, poetry)")]
+        format: Option<String>,
+        #[arg(long, help = "Include hashes")]
+        hashes: bool,
+    },
+
+    #[command(about = "Import environment")]
+    Import {
+        #[arg(help = "File to import")]
+        file: String,
+    },
+
+    #[command(subcommand, about = "Manage rollbacks and snapshots")]
+    Snapshot(SnapshotCommands),
+
+    #[command(about = "Audit dependencies for vulnerabilities")]
+    Audit {
+        #[arg(long, help = "Output as JSON")]
+        json: bool,
+    },
+
+    #[command(subcommand, about = "Manage caches")]
+    Cache(CacheCommands),
+
+    #[command(about = "Configure IDE integrations")]
+    Ide {
+        #[arg(help = "IDE name (vscode, pycharm, pyright)")]
+        name: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -145,4 +185,50 @@ pub enum EnvCommands {
 
     #[command(about = "Show environment details")]
     Info,
+}
+
+#[derive(Subcommand)]
+pub enum WorkspaceCommands {
+    #[command(about = "Initialize workspace")]
+    Init,
+    #[command(about = "List members")]
+    List,
+}
+
+#[derive(Subcommand)]
+pub enum SnapshotCommands {
+    #[command(about = "List snapshots")]
+    List,
+    #[command(about = "Rollback to snapshot")]
+    Rollback {
+        id: Option<String>,
+    },
+    #[command(about = "Show diff")]
+    Diff {
+        id: String,
+    },
+    #[command(about = "Garbage collect snapshots")]
+    Gc,
+}
+
+#[derive(Subcommand)]
+pub enum CacheCommands {
+    #[command(about = "Clear cache")]
+    Clear {
+        #[arg(help = "Cache type")]
+        target: Option<String>,
+    },
+    #[command(about = "Garbage collect cache")]
+    Gc {
+        #[arg(long)]
+        dry_run: bool,
+        #[arg(long)]
+        aggressive: bool,
+    },
+    #[command(about = "Show cache info")]
+    Info,
+    #[command(about = "Warm cache")]
+    Warm {
+        packages: Vec<String>,
+    },
 }

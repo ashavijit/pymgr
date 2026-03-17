@@ -34,7 +34,7 @@ pub fn get_cached_metadata(package: &str, version: &str) -> Option<String> {
             let age = SystemTime::now()
                 .duration_since(modified)
                 .unwrap_or(Duration::MAX);
-            if age > Duration::from_secs(METADATA_TTL_SECS) {
+            if !crate::config::is_offline_mode() && age > Duration::from_secs(METADATA_TTL_SECS) {
                 let _ = std::fs::remove_file(&path);
                 return None;
             }

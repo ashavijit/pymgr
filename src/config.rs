@@ -3,6 +3,17 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::errors::{ErrorCode, PymgrError, PymgrResult};
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static OFFLINE_MODE: AtomicBool = AtomicBool::new(false);
+
+pub fn set_offline_mode(offline: bool) {
+    OFFLINE_MODE.store(offline, Ordering::SeqCst);
+}
+
+pub fn is_offline_mode() -> bool {
+    OFFLINE_MODE.load(Ordering::SeqCst)
+}
 
 #[derive(Debug, Deserialize, Serialize, Default)]
 pub struct PymgrConfig {
@@ -14,6 +25,20 @@ pub struct PymgrConfig {
     pub dependencies: HashMap<String, String>,
     #[serde(default, rename = "dev-dependencies")]
     pub dev_dependencies: HashMap<String, String>,
+    #[serde(default)]
+    pub groups: HashMap<String, HashMap<String, String>>,
+    #[serde(default)]
+    pub hooks: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct WorkspaceConfig {
+    #[serde(default)]
+    pub members: Vec<String>,
+    #[serde(default)]
+    pub exclude: Vec<String>,
+    #[serde(default, rename = "env-strategy")]
+    pub env_strategy: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -34,6 +59,8 @@ pub struct PymgrToml {
     pub env_path: Option<String>,
     #[serde(default)]
     pub index_url: Option<String>,
+    #[serde(default)]
+    pub workspace: Option<WorkspaceConfig>,
 }
 
 impl PymgrConfig {

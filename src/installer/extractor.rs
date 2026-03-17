@@ -3,6 +3,8 @@ use std::path::Path;
 
 use crate::errors::PymgrResult;
 use crate::output;
+use tar::Archive;
+use flate2::read::GzDecoder;
 
 pub fn extract_wheel(wheel_path: &Path, dest: &Path) -> PymgrResult<()> {
     let file = std::fs::File::open(wheel_path)?;
@@ -53,6 +55,16 @@ pub fn extract_wheel_bytes(data: &[u8], dest: &Path) -> PymgrResult<()> {
         }
     }
 
+    Ok(())
+}
+
+pub fn extract_tar_gz_bytes(data: &[u8], dest: &Path) -> PymgrResult<()> {
+    let cursor = Cursor::new(data);
+    let tar = GzDecoder::new(cursor);
+    let mut archive = Archive::new(tar);
+    archive.unpack(dest).map_err(|e| {
+        crate::errors::PymgrError::Other(format!("Failed to unpack tar.gz: {}", e))
+    })?;
     Ok(())
 }
 
