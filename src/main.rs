@@ -152,6 +152,7 @@ async fn run(cli: Cli) -> PymgrResult<()> {
         }
 
         Commands::Snapshot(subcmd) => match subcmd {
+            SnapshotCommands::Create { id } => commands::snapshot::exec_create(&id)?,
             SnapshotCommands::List => commands::snapshot::exec_list()?,
             SnapshotCommands::Rollback { id } => commands::snapshot::exec_rollback(id.as_deref())?,
             SnapshotCommands::Diff { id } => commands::snapshot::exec_diff(&id)?,

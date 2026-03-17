@@ -197,6 +197,11 @@ pub enum WorkspaceCommands {
 
 #[derive(Subcommand)]
 pub enum SnapshotCommands {
+    #[command(about = "Create a snapshot")]
+    Create {
+        #[arg(help = "Name of the snapshot")]
+        id: String,
+    },
     #[command(about = "List snapshots")]
     List,
     #[command(about = "Rollback to snapshot")]
