@@ -20,6 +20,15 @@ pub fn wheel_cache_dir() -> PathBuf {
     cache_dir().join("wheels")
 }
 
+pub fn extracted_cache_dir() -> PathBuf {
+    cache_dir().join("extracted")
+}
+
+pub fn get_extracted_cache_dir(sha256: &str) -> PathBuf {
+    let shard = &sha256[..4.min(sha256.len())];
+    extracted_cache_dir().join(shard).join(sha256)
+}
+
 pub fn get_cached_metadata(package: &str, version: &str) -> Option<String> {
     let path = metadata_cache_dir()
         .join(package)
@@ -75,6 +84,22 @@ pub fn install_from_cache(cached_path: &Path, dest: &Path) -> PymgrResult<()> {
         Ok(_) => {}
         Err(_) => {
             std::fs::copy(cached_path, dest)?;
+        }
+    }
+    Ok(())
+}
+
+pub fn link_directory(source: &Path, dest: &Path) -> PymgrResult<()> {
+    for entry in walkdir::WalkDir::new(source).into_iter().flatten() {
+        if entry.file_type().is_file() {
+            let rel_path = entry.path().strip_prefix(source).unwrap();
+            let target_path = dest.join(rel_path);
+            if let Some(parent) = target_path.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            if !target_path.exists() {
+                install_from_cache(entry.path(), &target_path)?;
+            }
         }
     }
     Ok(())

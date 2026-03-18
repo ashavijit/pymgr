@@ -63,10 +63,20 @@ async fn download_and_install(
     site_packages: &PathBuf,
     python_exe: &PathBuf,
 ) -> PymgrResult<PathBuf> {
-    if let Some(cached_path) = cache::get_cached_wheel(&pkg.sha256) {
-        output::print_verbose(&format!("Cache hit: {} {}", pkg.name, pkg.version));
+    let extracted_dir = cache::get_extracted_cache_dir(&pkg.sha256);
+    if extracted_dir.exists() {
+        output::print_verbose(&format!("Extracted cache hit: {} {}", pkg.name, pkg.version));
         let dest = site_packages.clone();
-        crate::installer::extractor::extract_wheel(&cached_path.join("wheel.whl"), &dest)?;
+        cache::link_directory(&extracted_dir, &dest)?;
+        return Ok(dest);
+    }
+
+    if let Some(cached_path) = cache::get_cached_wheel(&pkg.sha256) {
+        output::print_verbose(&format!("Wheel cache hit: {} {}", pkg.name, pkg.version));
+        let dest = site_packages.clone();
+        std::fs::create_dir_all(&extracted_dir)?;
+        crate::installer::extractor::extract_wheel(&cached_path.join("wheel.whl"), &extracted_dir)?;
+        cache::link_directory(&extracted_dir, &dest)?;
         return Ok(dest);
     }
 
@@ -140,11 +150,15 @@ async fn download_and_install(
             crate::installer::builder::build_sdist(&source_dir, out_dir.path(), python_exe)?;
 
         let wheel_bytes = std::fs::read(&built_wheel)?;
-        crate::installer::extractor::extract_wheel_bytes(&wheel_bytes, site_packages)?;
+        std::fs::create_dir_all(&extracted_dir)?;
+        crate::installer::extractor::extract_wheel_bytes(&wheel_bytes, &extracted_dir)?;
         let _ = cache::store_wheel(&pkg.sha256, &wheel_bytes);
+        cache::link_directory(&extracted_dir, site_packages)?;
     } else {
         let _cached_path = cache::store_wheel(&pkg.sha256, &bytes)?;
-        crate::installer::extractor::extract_wheel_bytes(&bytes, site_packages)?;
+        std::fs::create_dir_all(&extracted_dir)?;
+        crate::installer::extractor::extract_wheel_bytes(&bytes, &extracted_dir)?;
+        cache::link_directory(&extracted_dir, site_packages)?;
     }
 
     Ok(site_packages.clone())
