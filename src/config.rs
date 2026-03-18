@@ -31,6 +31,8 @@ pub struct PymgrConfig {
     pub hooks: HashMap<String, String>,
     #[serde(default)]
     pub scripts: HashMap<String, String>,
+    #[serde(default)]
+    pub workspace: Option<WorkspaceConfig>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]
@@ -85,6 +87,7 @@ impl PymgrConfig {
             return Ok(PymgrConfig {
                 python: toml_config.python,
                 env_path: toml_config.env_path,
+                workspace: toml_config.workspace,
                 ..Default::default()
             });
         }
@@ -132,6 +135,19 @@ impl PymgrConfig {
             .map_err(|e| PymgrError::coded(ErrorCode::ConfigError, e.to_string()))?;
 
         if doc.contains("[tool.pymgr]") {
+            if let Some(ws) = &self.workspace {
+                if !doc.contains("[tool.pymgr.workspace]") {
+                    doc.push_str("\n[tool.pymgr.workspace]\n");
+                    if !ws.members.is_empty() {
+                        doc.push_str("members = [\n");
+                        for mem in &ws.members {
+                            doc.push_str(&format!("    \"{}\",\n", mem));
+                        }
+                        doc.push_str("]\n");
+                    }
+                    std::fs::write(&pyproject, doc)?;
+                }
+            }
             return Ok(());
         }
 
@@ -140,6 +156,17 @@ impl PymgrConfig {
             doc.push_str(&format!("python = \"{}\"\n", py));
         }
         doc.push_str(&format!("env-path = \"{}\"\n", self.env_dir()));
+
+        if let Some(ws) = &self.workspace {
+            doc.push_str("\n[tool.pymgr.workspace]\n");
+            if !ws.members.is_empty() {
+                doc.push_str("members = [\n");
+                for mem in &ws.members {
+                    doc.push_str(&format!("    \"{}\",\n", mem));
+                }
+                doc.push_str("]\n");
+            }
+        }
 
         if !self.dependencies.is_empty() {
             doc.push_str("\n[tool.pymgr.dependencies]\n");
