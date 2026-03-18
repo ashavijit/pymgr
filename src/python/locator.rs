@@ -22,10 +22,7 @@ pub fn locate_python(requested: Option<&str>) -> PymgrResult<PythonInfo> {
         let path = PathBuf::from(&val);
         if path.exists() {
             if let Ok(ver) = get_python_version(&path) {
-                return Ok(PythonInfo {
-                    path,
-                    version: ver,
-                });
+                return Ok(PythonInfo { path, version: ver });
             }
         }
     }
@@ -38,11 +35,10 @@ pub fn locate_python(requested: Option<&str>) -> PymgrResult<PythonInfo> {
         return Ok(info);
     }
 
-    Err(PymgrError::coded(
-        ErrorCode::PythonNotFound,
-        "No Python 3.x interpreter found",
+    Err(
+        PymgrError::coded(ErrorCode::PythonNotFound, "No Python 3.x interpreter found")
+            .with_suggestion("Install Python 3.x or run `pymgr python install 3.12`"),
     )
-    .with_suggestion("Install Python 3.x or run `pymgr python install 3.12`"))
 }
 
 fn find_specific_version(version: &str) -> PymgrResult<PythonInfo> {
@@ -50,7 +46,10 @@ fn find_specific_version(version: &str) -> PymgrResult<PythonInfo> {
     let bin = if cfg!(windows) {
         managed.join("python.exe")
     } else {
-        managed.join("bin").join(&format!("python{}", &version[..version.rfind('.').unwrap_or(version.len())]))
+        managed.join("bin").join(&format!(
+            "python{}",
+            &version[..version.rfind('.').unwrap_or(version.len())]
+        ))
     };
     if bin.exists() {
         if let Ok(ver) = get_python_version(&bin) {
@@ -71,7 +70,13 @@ fn find_specific_version(version: &str) -> PymgrResult<PythonInfo> {
     } else {
         vec![
             format!("python{}", version),
-            format!("python{}", &version[..version.find('.').unwrap_or(version.len()).min(version.len())]),
+            format!(
+                "python{}",
+                &version[..version
+                    .find('.')
+                    .unwrap_or(version.len())
+                    .min(version.len())]
+            ),
             "python3".to_string(),
         ]
     };
@@ -97,9 +102,7 @@ fn from_python_version_file() -> PymgrResult<PythonInfo> {
     let cwd = std::env::current_dir()?;
     let version_file = cwd.join(".python-version");
     if version_file.exists() {
-        let version = std::fs::read_to_string(&version_file)?
-            .trim()
-            .to_string();
+        let version = std::fs::read_to_string(&version_file)?.trim().to_string();
         return find_specific_version(&version);
     }
     Err(PymgrError::Other("No .python-version file found".into()))
@@ -116,10 +119,7 @@ fn scan_path() -> PymgrResult<PythonInfo> {
         if let Ok(path) = which::which(name) {
             if let Ok(ver) = get_python_version(&path) {
                 if ver.starts_with('3') {
-                    return Ok(PythonInfo {
-                        path,
-                        version: ver,
-                    });
+                    return Ok(PythonInfo { path, version: ver });
                 }
             }
         }
@@ -144,10 +144,7 @@ fn scan_common_paths() -> PymgrResult<PythonInfo> {
             PathBuf::from("/Library/Frameworks/Python.framework/Versions"),
         ]
     } else {
-        vec![
-            PathBuf::from("/usr/bin"),
-            PathBuf::from("/usr/local/bin"),
-        ]
+        vec![PathBuf::from("/usr/bin"), PathBuf::from("/usr/local/bin")]
     };
 
     for base in &paths {

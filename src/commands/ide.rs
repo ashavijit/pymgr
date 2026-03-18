@@ -6,7 +6,7 @@ use std::path::Path;
 pub fn exec(name: &str) -> PymgrResult<()> {
     let project_dir = PymgrConfig::find_project_root()?;
     let python_exe = crate::env::manager::get_env_python(&project_dir)?;
-    
+
     // We want a relative path for IDEs if possible to keep them portable
     let relative_exe = if let Ok(rel) = python_exe.strip_prefix(&project_dir) {
         rel.to_path_buf()
@@ -21,7 +21,7 @@ pub fn exec(name: &str) -> PymgrResult<()> {
             let vscode_dir = project_dir.join(".vscode");
             std::fs::create_dir_all(&vscode_dir)?;
             let settings_path = vscode_dir.join("settings.json");
-            
+
             let mut settings = serde_json::json!({});
             if settings_path.exists() {
                 let content = std::fs::read_to_string(&settings_path).unwrap_or_default();
@@ -30,16 +30,58 @@ pub fn exec(name: &str) -> PymgrResult<()> {
                 }
             }
 
+            let abs_python = python_exe.to_string_lossy().replace('\\', "/");
+            let env_dir_path = python_exe.parent().unwrap().parent().unwrap();
+            let site_packages = if cfg!(windows) {
+                env_dir_path.join("Lib").join("site-packages")
+            } else {
+                let lib_dir = env_dir_path.join("lib");
+                let mut sp = lib_dir.clone();
+                if lib_dir.exists() {
+                    if let Ok(entries) = std::fs::read_dir(&lib_dir) {
+                        for entry in entries.flatten() {
+                            if entry.file_name().to_string_lossy().starts_with("python") {
+                                sp = entry.path().join("site-packages");
+                                break;
+                            }
+                        }
+                    }
+                }
+                sp
+            };
+            let abs_site_packages = site_packages.to_string_lossy().replace('\\', "/");
+
             if let Some(obj) = settings.as_object_mut() {
-                obj.insert("python.defaultInterpreterPath".to_string(), serde_json::json!(rel_str));
+                obj.insert(
+                    "python.defaultInterpreterPath".to_string(),
+                    serde_json::json!(abs_python),
+                );
+                obj.insert(
+                    "python.pythonPath".to_string(),
+                    serde_json::json!(abs_python),
+                );
+                obj.insert(
+                    "python.analysis.extraPaths".to_string(),
+                    serde_json::json!([abs_site_packages]),
+                );
             }
 
             std::fs::write(&settings_path, serde_json::to_string_pretty(&settings)?)?;
-            output::print_success("Configured VSCode interpreter path in .vscode/settings.json");
+
+            let pyre_config = project_dir.join(".pyre_configuration");
+            let pyre_json = serde_json::json!({
+                "source_directories": ["."],
+                "search_path": [abs_site_packages],
+                "site_package_search_strategy": "all",
+                "python_version": "3.12"
+            });
+            std::fs::write(&pyre_config, serde_json::to_string_pretty(&pyre_json)?)?;
+
+            output::print_success("Configured VSCode interpreter + Pylance extraPaths + Pyre2 search path");
         }
         "pyright" => {
             let pyright_path = project_dir.join("pyrightconfig.json");
-            
+
             let mut settings = serde_json::json!({});
             if pyright_path.exists() {
                 let content = std::fs::read_to_string(&pyright_path).unwrap_or_default();
@@ -51,8 +93,16 @@ pub fn exec(name: &str) -> PymgrResult<()> {
             let config = PymgrConfig::load(&project_dir).unwrap_or_default();
             let env_dir = config.env_dir();
             let env_path = Path::new(&env_dir);
-            let venv_parent = env_path.parent().unwrap_or(Path::new(".")).to_string_lossy().to_string();
-            let venv_name = env_path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            let venv_parent = env_path
+                .parent()
+                .unwrap_or(Path::new("."))
+                .to_string_lossy()
+                .to_string();
+            let venv_name = env_path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
 
             if let Some(obj) = settings.as_object_mut() {
                 obj.insert("venvPath".to_string(), serde_json::json!(venv_parent));
@@ -72,7 +122,10 @@ pub fn exec(name: &str) -> PymgrResult<()> {
         _ => {
             return Err(PymgrError::coded(
                 ErrorCode::ConfigError,
-                format!("Unknown IDE: {}. Use 'vscode', 'pyright', or 'pycharm'.", name),
+                format!(
+                    "Unknown IDE: {}. Use 'vscode', 'pyright', or 'pycharm'.",
+                    name
+                ),
             ));
         }
     }

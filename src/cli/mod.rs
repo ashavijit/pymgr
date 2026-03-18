@@ -53,7 +53,11 @@ pub enum Commands {
     Run {
         #[arg(help = "Command to run")]
         cmd: String,
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true, help = "Arguments for the command")]
+        #[arg(
+            trailing_var_arg = true,
+            allow_hyphen_values = true,
+            help = "Arguments for the command"
+        )]
         args: Vec<String>,
     },
 
@@ -205,13 +209,9 @@ pub enum SnapshotCommands {
     #[command(about = "List snapshots")]
     List,
     #[command(about = "Rollback to snapshot")]
-    Rollback {
-        id: Option<String>,
-    },
+    Rollback { id: Option<String> },
     #[command(about = "Show diff")]
-    Diff {
-        id: String,
-    },
+    Diff { id: String },
     #[command(about = "Garbage collect snapshots")]
     Gc,
 }
@@ -233,7 +233,5 @@ pub enum CacheCommands {
     #[command(about = "Show cache info")]
     Info,
     #[command(about = "Warm cache")]
-    Warm {
-        packages: Vec<String>,
-    },
+    Warm { packages: Vec<String> },
 }

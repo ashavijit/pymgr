@@ -29,6 +29,8 @@ pub struct PymgrConfig {
     pub groups: HashMap<String, HashMap<String, String>>,
     #[serde(default)]
     pub hooks: HashMap<String, String>,
+    #[serde(default)]
+    pub scripts: HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default, Clone)]

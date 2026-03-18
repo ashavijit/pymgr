@@ -65,7 +65,9 @@ pub async fn self_update() -> PymgrResult<()> {
                 if name.contains(target) {
                     let download_url = asset["browser_download_url"].as_str().unwrap_or("");
                     output::print_info(&format!("Download from: {}", download_url));
-                    output::print_info("Self-update download is not yet implemented — please download manually");
+                    output::print_info(
+                        "Self-update download is not yet implemented — please download manually",
+                    );
                     return Ok(());
                 }
             }

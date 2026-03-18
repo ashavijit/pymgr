@@ -73,7 +73,7 @@ async fn download_and_install(
     output::print_verbose(&format!("Downloading {} {}...", pkg.name, pkg.version));
 
     let info = pypi::fetch_version_info(&pkg.name, &pkg.version).await?;
-    
+
     let is_sdist;
     let release = if let Some(w) = pypi::find_best_wheel(&info.urls) {
         is_sdist = false;
@@ -89,16 +89,12 @@ async fn download_and_install(
     };
 
     let client = reqwest::Client::new();
-    let response = client
-        .get(&release.url)
-        .send()
-        .await
-        .map_err(|e| {
-            PymgrError::coded(
-                ErrorCode::NetworkError,
-                format!("Failed to download {}: {}", pkg.name, e),
-            )
-        })?;
+    let response = client.get(&release.url).send().await.map_err(|e| {
+        PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("Failed to download {}: {}", pkg.name, e),
+        )
+    })?;
 
     let bytes = response.bytes().await.map_err(|e| {
         PymgrError::coded(

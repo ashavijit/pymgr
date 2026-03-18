@@ -75,7 +75,10 @@ pub fn print_verbose(message: &str) {
 }
 
 pub fn print_json(value: &serde_json::Value) {
-    println!("{}", serde_json::to_string_pretty(value).unwrap_or_default());
+    println!(
+        "{}",
+        serde_json::to_string_pretty(value).unwrap_or_default()
+    );
 }
 
 pub fn create_spinner(message: &str) -> ProgressBar {

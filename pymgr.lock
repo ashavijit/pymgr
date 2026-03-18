@@ -1,20 +1,61 @@
 [metadata]
 python = "3.14.3"
 resolver = "pubgrub-v1"
-generated-at = "2026-03-17T05:05:27.203668700+00:00"
+generated-at = "2026-03-17T07:34:56.425260+00:00"
 
 [[package]]
-name = "colorama"
-version = "0.4.6"
+name = "axios-python"
+version = "0.2.0"
 source = "pypi"
-sha256 = "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
-requires-python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
-dependencies = []
+sha256 = "f14e70d2afb0a5888c8ac335336482418933b32795cc867930b06fff7169c185"
+requires-python = ">=3.10"
+
+[[package.dependencies]]
+name = "httpx"
+version = ">=0.27.0"
 
 [[package]]
-name = "urllib3"
-version = "2.6.3"
+name = "httpx"
+version = "0.28.1"
 source = "pypi"
-sha256 = "bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4"
+sha256 = "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
+requires-python = ">=3.8"
+
+[[package.dependencies]]
+name = "anyio"
+version = "*"
+
+[[package.dependencies]]
+name = "certifi"
+version = "*"
+
+[[package.dependencies]]
+name = "httpcore"
+version = "==1.*"
+
+[[package.dependencies]]
+name = "idna"
+version = "*"
+
+[[package]]
+name = "requests"
+version = "2.32.5"
+source = "pypi"
+sha256 = "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"
 requires-python = ">=3.9"
-dependencies = []
+
+[[package.dependencies]]
+name = "charset_normalizer<4,"
+version = ">=2"
+
+[[package.dependencies]]
+name = "idna<4,"
+version = ">=2.5"
+
+[[package.dependencies]]
+name = "urllib3<3,"
+version = ">=1.21.1"
+
+[[package.dependencies]]
+name = "certifi"
+version = ">=2017.4.17"

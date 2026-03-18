@@ -60,7 +60,10 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
     }
 
     if !json {
-        println!("Auditing {} packages against OSV database...", lockfile.packages.len());
+        println!(
+            "Auditing {} packages against OSV database...",
+            lockfile.packages.len()
+        );
     }
 
     let mut queries = Vec::new();
@@ -81,20 +84,29 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
         .send()
         .await
         .map_err(|e| {
-            PymgrError::coded(ErrorCode::NetworkError, format!("Failed to reach OSV API: {}", e))
+            PymgrError::coded(
+                ErrorCode::NetworkError,
+                format!("Failed to reach OSV API: {}", e),
+            )
         })?;
 
     if !res.status().is_success() {
-        return Err(PymgrError::coded(ErrorCode::NetworkError, format!("OSV API error: {}", res.status())));
+        return Err(PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("OSV API error: {}", res.status()),
+        ));
     }
 
     let osv_resp: OsvResponse = res.json().await.map_err(|e| {
-        PymgrError::coded(ErrorCode::NetworkError, format!("Invalid OSV response: {}", e))
+        PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("Invalid OSV response: {}", e),
+        )
     })?;
 
     let results = osv_resp.results.unwrap_or_default();
     let mut total_vulns = 0;
-    
+
     let mut report = Vec::new();
 
     let mut table = comfy_table::Table::new();
@@ -123,7 +135,9 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
                         pkg.name.clone(),
                         pkg.version.clone(),
                         vuln.id.clone(),
-                        vuln.summary.clone().unwrap_or_else(|| "No summary available".to_string()),
+                        vuln.summary
+                            .clone()
+                            .unwrap_or_else(|| "No summary available".to_string()),
                     ]);
                 }
             }
@@ -139,7 +153,10 @@ pub async fn exec(json: bool) -> PymgrResult<()> {
         output::print_success("No vulnerabilities found! Your environment is secure.");
     } else {
         println!("\n{}", table);
-        output::print_warning(&format!("\nFound {} vulnerabilities. Please update the affected packages.", total_vulns));
+        output::print_warning(&format!(
+            "\nFound {} vulnerabilities. Please update the affected packages.",
+            total_vulns
+        ));
     }
 
     Ok(())

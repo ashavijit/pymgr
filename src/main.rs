@@ -90,7 +90,11 @@ async fn run(cli: Cli) -> PymgrResult<()> {
             }
         },
 
-        Commands::Add { packages, dev, editable } => {
+        Commands::Add {
+            packages,
+            dev,
+            editable,
+        } => {
             commands::packages::exec_add(&project_dir, &packages, dev, editable).await?;
         }
 
@@ -165,9 +169,10 @@ async fn run(cli: Cli) -> PymgrResult<()> {
 
         Commands::Cache(subcmd) => match subcmd {
             CacheCommands::Clear { target } => commands::cache_cmd::exec_clear(target.as_deref())?,
-            CacheCommands::Gc { dry_run, aggressive } => {
-                commands::cache_cmd::exec_gc(dry_run, aggressive)?
-            }
+            CacheCommands::Gc {
+                dry_run,
+                aggressive,
+            } => commands::cache_cmd::exec_gc(dry_run, aggressive)?,
             CacheCommands::Info => commands::cache_cmd::exec_info()?,
             CacheCommands::Warm { packages } => commands::cache_cmd::exec_warm(&packages).await?,
         },

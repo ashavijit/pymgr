@@ -19,8 +19,7 @@ pub struct EnvMetadata {
 
 pub fn create_env(project_dir: &Path, python_request: Option<&str>) -> PymgrResult<PathBuf> {
     let config = PymgrConfig::load(project_dir).unwrap_or_default();
-    let python_spec = python_request
-        .or(config.python.as_deref());
+    let python_spec = python_request.or(config.python.as_deref());
 
     let python = locator::locate_python(python_spec)?;
 
@@ -56,7 +55,8 @@ pub fn create_env(project_dir: &Path, python_request: Option<&str>) -> PymgrResu
 }
 
 fn create_env_skeleton(env_dir: &Path, python: &PythonInfo) -> PymgrResult<()> {
-    let version_short = &python.version[..python.version.rfind('.').unwrap_or(python.version.len())];
+    let version_short =
+        &python.version[..python.version.rfind('.').unwrap_or(python.version.len())];
 
     if cfg!(windows) {
         std::fs::create_dir_all(env_dir.join("Scripts"))?;
@@ -89,7 +89,14 @@ fn link_python(env_dir: &Path, python: &PythonInfo) -> PymgrResult<()> {
         std::fs::copy(&python.path, &dest)?;
 
         let python_dir = python.path.parent().unwrap_or(Path::new(""));
-        for dll in &["python3.dll", "python311.dll", "python312.dll", "python313.dll", "vcruntime140.dll", "vcruntime140_1.dll"] {
+        for dll in &[
+            "python3.dll",
+            "python311.dll",
+            "python312.dll",
+            "python313.dll",
+            "vcruntime140.dll",
+            "vcruntime140_1.dll",
+        ] {
             let src = python_dir.join(dll);
             if src.exists() {
                 let _ = std::fs::copy(&src, scripts_dir.join(dll));
@@ -274,11 +281,10 @@ pub fn get_env_python(project_dir: &Path) -> PymgrResult<PathBuf> {
     };
 
     if !python_path.exists() {
-        return Err(PymgrError::coded(
-            ErrorCode::EnvNotFound,
-            "No environment found",
-        )
-        .with_suggestion("Run `pymgr init` to create one"));
+        return Err(
+            PymgrError::coded(ErrorCode::EnvNotFound, "No environment found")
+                .with_suggestion("Run `pymgr init` to create one"),
+        );
     }
 
     Ok(python_path)

@@ -13,7 +13,10 @@ pub fn run_diagnostics(project_dir: &Path) -> PymgrResult<()> {
     output::print_info("Checking Python...");
     match locator::locate_python(None) {
         Ok(info) => {
-            output::print_key_value("Python", &format!("{} ({})", info.version, info.path.display()));
+            output::print_key_value(
+                "Python",
+                &format!("{} ({})", info.version, info.path.display()),
+            );
         }
         Err(e) => {
             output::print_error(&format!("Python: {}", e));
@@ -61,11 +64,19 @@ pub fn run_diagnostics(project_dir: &Path) -> PymgrResult<()> {
         Ok(stats) => {
             output::print_key_value(
                 "Metadata cache",
-                &format!("{} entries ({})", stats.metadata_entries, cache::CacheStats::format_size(stats.metadata_size)),
+                &format!(
+                    "{} entries ({})",
+                    stats.metadata_entries,
+                    cache::CacheStats::format_size(stats.metadata_size)
+                ),
             );
             output::print_key_value(
                 "Wheel cache",
-                &format!("{} entries ({})", stats.wheel_entries, cache::CacheStats::format_size(stats.wheel_size)),
+                &format!(
+                    "{} entries ({})",
+                    stats.wheel_entries,
+                    cache::CacheStats::format_size(stats.wheel_size)
+                ),
             );
         }
         Err(_) => {

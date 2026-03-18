@@ -78,7 +78,9 @@ fn find_compatible_version(
 ) -> PymgrResult<String> {
     let mut versions: Vec<&String> = releases
         .keys()
-        .filter(|v| !v.contains("dev") && !v.contains("rc") && !v.contains("alpha") && !v.contains("beta"))
+        .filter(|v| {
+            !v.contains("dev") && !v.contains("rc") && !v.contains("alpha") && !v.contains("beta")
+        })
         .filter(|v| !releases[*v].is_empty())
         .collect();
 
@@ -108,15 +110,12 @@ fn find_compatible_version(
         }
     }
 
-    versions
-        .first()
-        .map(|v| v.to_string())
-        .ok_or_else(|| {
-            PymgrError::coded(
-                ErrorCode::ResolutionConflict,
-                format!("No compatible version found for spec {}", base_version),
-            )
-        })
+    versions.first().map(|v| v.to_string()).ok_or_else(|| {
+        PymgrError::coded(
+            ErrorCode::ResolutionConflict,
+            format!("No compatible version found for spec {}", base_version),
+        )
+    })
 }
 
 fn find_minimum_version(
@@ -125,7 +124,9 @@ fn find_minimum_version(
 ) -> PymgrResult<String> {
     let mut versions: Vec<&String> = releases
         .keys()
-        .filter(|v| !v.contains("dev") && !v.contains("rc") && !v.contains("alpha") && !v.contains("beta"))
+        .filter(|v| {
+            !v.contains("dev") && !v.contains("rc") && !v.contains("alpha") && !v.contains("beta")
+        })
         .filter(|v| !releases[*v].is_empty())
         .collect();
 
@@ -137,15 +138,12 @@ fn find_minimum_version(
         }
     }
 
-    versions
-        .first()
-        .map(|v| v.to_string())
-        .ok_or_else(|| {
-            PymgrError::coded(
-                ErrorCode::ResolutionConflict,
-                format!("No version >= {} found", min_version),
-            )
-        })
+    versions.first().map(|v| v.to_string()).ok_or_else(|| {
+        PymgrError::coded(
+            ErrorCode::ResolutionConflict,
+            format!("No version >= {} found", min_version),
+        )
+    })
 }
 
 fn compare_versions(a: &str, b: &str) -> std::cmp::Ordering {

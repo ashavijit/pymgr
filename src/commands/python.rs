@@ -33,7 +33,10 @@ pub fn exec_list() -> PymgrResult<()> {
     match locator::locate_python(None) {
         Ok(info) => {
             println!();
-            output::print_key_value("System Python", &format!("{} ({})", info.version, info.path.display()));
+            output::print_key_value(
+                "System Python",
+                &format!("{} ({})", info.version, info.path.display()),
+            );
         }
         Err(_) => {}
     }

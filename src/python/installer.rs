@@ -102,10 +102,7 @@ fn build_download_url(version: &str) -> PymgrResult<String> {
             base, version, version
         ))
     } else {
-        Ok(format!(
-            "{}/{}/Python-{}.tar.xz",
-            base, version, version
-        ))
+        Ok(format!("{}/{}/Python-{}.tar.xz", base, version, version))
     }
 }
 
@@ -160,9 +157,7 @@ fn extract_tarball(archive_path: &Path, dest: &Path) -> PymgrResult<()> {
 
     let file = std::fs::File::open(archive_path)?;
 
-    let ext = archive_path
-        .to_str()
-        .unwrap_or("");
+    let ext = archive_path.to_str().unwrap_or("");
 
     if ext.ends_with(".tar.xz") || ext.ends_with(".txz") {
         let decoder = xz2::read::XzDecoder::new(file);

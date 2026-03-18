@@ -31,18 +31,32 @@ pub async fn exec_add(
             };
 
             let spinner = output::create_spinner(&format!("Adding editable {}...", pkg_path));
-            
+
             let status = std::process::Command::new(&python_exe)
-                .args(["-m", "pip", "install", "--no-deps", "-e", abs_path.to_str().unwrap()])
+                .args([
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-deps",
+                    "-e",
+                    abs_path.to_str().unwrap(),
+                ])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .status()?;
 
             if !status.success() {
-                return Err(PymgrError::coded(ErrorCode::InstallError, format!("Failed to install editable package at {}", pkg_path)));
+                return Err(PymgrError::coded(
+                    ErrorCode::InstallError,
+                    format!("Failed to install editable package at {}", pkg_path),
+                ));
             }
 
-            let name = abs_path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            let name = abs_path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
 
             lockfile.add_package(LockedPackage {
                 name: name.clone(),
@@ -54,9 +68,13 @@ pub async fn exec_add(
             });
 
             if dev {
-                config.dev_dependencies.insert(name.clone(), pkg_path.to_string());
+                config
+                    .dev_dependencies
+                    .insert(name.clone(), pkg_path.to_string());
             } else {
-                config.dependencies.insert(name.clone(), pkg_path.to_string());
+                config
+                    .dependencies
+                    .insert(name.clone(), pkg_path.to_string());
             }
 
             spinner.finish_and_clear();
@@ -195,10 +213,7 @@ pub async fn exec_install(project_dir: &Path, frozen: bool) -> PymgrResult<()> {
         }
         lockfile.save(&lockfile_path)?;
 
-        output::print_success(&format!(
-            "Installed {} packages",
-            lockfile.packages.len()
-        ));
+        output::print_success(&format!("Installed {} packages", lockfile.packages.len()));
     }
 
     Ok(())
@@ -246,11 +261,10 @@ pub async fn exec_update(project_dir: &Path, packages: &[String]) -> PymgrResult
 pub async fn exec_sync(project_dir: &Path) -> PymgrResult<()> {
     let lockfile_path = project_dir.join("pymgr.lock");
     if !lockfile_path.exists() {
-        return Err(PymgrError::coded(
-            ErrorCode::LockStale,
-            "No pymgr.lock found",
-        )
-        .with_suggestion("Run `pymgr install` first"));
+        return Err(
+            PymgrError::coded(ErrorCode::LockStale, "No pymgr.lock found")
+                .with_suggestion("Run `pymgr install` first"),
+        );
     }
 
     let python_version = get_python_version(project_dir)?;
@@ -301,12 +315,9 @@ pub fn exec_list(project_dir: &Path) -> PymgrResult<()> {
         let mut table = comfy_table::Table::new();
         table.load_preset(comfy_table::presets::UTF8_FULL);
         table.set_header(vec!["Package", "Version"]);
-        
+
         for pkg in &installed {
-            table.add_row(vec![
-                pkg.name.clone(),
-                pkg.version.clone(),
-            ]);
+            table.add_row(vec![pkg.name.clone(), pkg.version.clone()]);
         }
         println!("\n{}", table);
     }
@@ -322,10 +333,7 @@ fn parse_pkg_spec(spec: &str) -> (String, Option<String>) {
         );
     }
     if let Some(pos) = spec.find(">=") {
-        return (
-            spec[..pos].to_string(),
-            Some(spec[pos..].to_string()),
-        );
+        return (spec[..pos].to_string(), Some(spec[pos..].to_string()));
     }
     (spec.to_string(), None)
 }

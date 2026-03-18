@@ -10,7 +10,10 @@ pub fn exec_create(id: &str) -> PymgrResult<()> {
 
     let lockfile = project_dir.join("pymgr.lock");
     if !lockfile.exists() {
-        return Err(PymgrError::coded(ErrorCode::LockStale, "No pymgr.lock to snapshot (run `pymgr install` first)"));
+        return Err(PymgrError::coded(
+            ErrorCode::LockStale,
+            "No pymgr.lock to snapshot (run `pymgr install` first)",
+        ));
     }
 
     let target = snapshots_dir.join(format!("{}.lock", id));
@@ -56,19 +59,28 @@ pub fn exec_rollback(id: Option<&str>) -> PymgrResult<()> {
     let snapshot_id = match id {
         Some(name) => name.to_string(),
         None => {
-            return Err(PymgrError::coded(ErrorCode::ConfigError, "Please specify a snapshot ID to rollback to"));
+            return Err(PymgrError::coded(
+                ErrorCode::ConfigError,
+                "Please specify a snapshot ID to rollback to",
+            ));
         }
     };
 
     let target = snapshots_dir.join(format!("{}.lock", snapshot_id));
     if !target.exists() {
-        return Err(PymgrError::coded(ErrorCode::IoError, format!("Snapshot '{}' does not exist", snapshot_id)));
+        return Err(PymgrError::coded(
+            ErrorCode::IoError,
+            format!("Snapshot '{}' does not exist", snapshot_id),
+        ));
     }
 
     let lockfile = project_dir.join("pymgr.lock");
     fs::copy(&target, &lockfile)?;
-    
-    output::print_success(&format!("Rolled back to snapshot '{}'. Run `pymgr sync` to apply changes to the environment.", snapshot_id));
+
+    output::print_success(&format!(
+        "Rolled back to snapshot '{}'. Run `pymgr sync` to apply changes to the environment.",
+        snapshot_id
+    ));
     Ok(())
 }
 
@@ -78,12 +90,18 @@ pub fn exec_diff(id: &str) -> PymgrResult<()> {
     let target = snapshots_dir.join(format!("{}.lock", id));
 
     if !target.exists() {
-        return Err(PymgrError::coded(ErrorCode::IoError, format!("Snapshot '{}' does not exist", id)));
+        return Err(PymgrError::coded(
+            ErrorCode::IoError,
+            format!("Snapshot '{}' does not exist", id),
+        ));
     }
 
     let current_lock_path = project_dir.join("pymgr.lock");
     if !current_lock_path.exists() {
-        return Err(PymgrError::coded(ErrorCode::LockStale, "No current pymgr.lock exists to diff against."));
+        return Err(PymgrError::coded(
+            ErrorCode::LockStale,
+            "No current pymgr.lock exists to diff against.",
+        ));
     }
 
     let current_lock = crate::lockfile::Lockfile::load(&current_lock_path)?;
@@ -126,7 +144,11 @@ pub fn exec_diff(id: &str) -> PymgrResult<()> {
     if !added.is_empty() {
         println!("\n  {} Added:", console::style("+").green());
         for (name, ver) in added {
-            println!("    {} {}", console::style(name).green(), console::style(ver).dim());
+            println!(
+                "    {} {}",
+                console::style(name).green(),
+                console::style(ver).dim()
+            );
         }
         has_changes = true;
     }
@@ -134,7 +156,11 @@ pub fn exec_diff(id: &str) -> PymgrResult<()> {
     if !removed.is_empty() {
         println!("\n  {} Removed:", console::style("-").red());
         for (name, ver) in removed {
-            println!("    {} {}", console::style(name).red(), console::style(ver).dim());
+            println!(
+                "    {} {}",
+                console::style(name).red(),
+                console::style(ver).dim()
+            );
         }
         has_changes = true;
     }
@@ -142,7 +168,12 @@ pub fn exec_diff(id: &str) -> PymgrResult<()> {
     if !changed.is_empty() {
         println!("\n  {} Changed:", console::style("~").yellow());
         for (name, old_v, new_v) in changed {
-            println!("    {} {} -> {}", console::style(name).yellow(), console::style(old_v).dim(), console::style(new_v).bold());
+            println!(
+                "    {} {} -> {}",
+                console::style(name).yellow(),
+                console::style(old_v).dim(),
+                console::style(new_v).bold()
+            );
         }
         has_changes = true;
     }
@@ -176,7 +207,10 @@ pub fn exec_gc() -> PymgrResult<()> {
     }
 
     if count > 0 {
-        output::print_success(&format!("Garbage collection complete: removed {} snapshot(s).", count));
+        output::print_success(&format!(
+            "Garbage collection complete: removed {} snapshot(s).",
+            count
+        ));
     } else {
         output::print_info("No snapshots found to clean.");
     }

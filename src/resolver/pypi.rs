@@ -93,7 +93,10 @@ pub async fn fetch_package_info(name: &str) -> PymgrResult<PypiPackageResponse> 
     }
 
     let text = response.text().await.map_err(|e| {
-        PymgrError::coded(ErrorCode::NetworkError, format!("Failed to read response: {}", e))
+        PymgrError::coded(
+            ErrorCode::NetworkError,
+            format!("Failed to read response: {}", e),
+        )
     })?;
 
     let _ = cache::store_metadata(name, "latest", &text);
@@ -112,7 +115,10 @@ pub async fn fetch_version_info(name: &str, version: &str) -> PymgrResult<PypiPa
     if crate::config::is_offline_mode() {
         return Err(PymgrError::coded(
             ErrorCode::NetworkError,
-            format!("Offline mode active: metadata for '{} {}' not in cache", name, version),
+            format!(
+                "Offline mode active: metadata for '{} {}' not in cache",
+                name, version
+            ),
         )
         .with_suggestion(format!("Run `pymgr cache warm` while online")));
     }
@@ -162,21 +168,18 @@ pub fn find_best_wheel(releases: &[PypiRelease]) -> Option<&PypiRelease> {
         .filter(|r| r.packagetype == "bdist_wheel")
         .collect();
 
-    if let Some(w) = wheels.iter().find(|w| {
-        w.filename.contains(platform_tag) && w.filename.contains(arch_tag)
-    }) {
+    if let Some(w) = wheels
+        .iter()
+        .find(|w| w.filename.contains(platform_tag) && w.filename.contains(arch_tag))
+    {
         return Some(w);
     }
 
-    if let Some(w) = wheels.iter().find(|w| {
-        w.filename.contains(platform_tag)
-    }) {
+    if let Some(w) = wheels.iter().find(|w| w.filename.contains(platform_tag)) {
         return Some(w);
     }
 
-    if let Some(w) = wheels.iter().find(|w| {
-        w.filename.contains("none-any")
-    }) {
+    if let Some(w) = wheels.iter().find(|w| w.filename.contains("none-any")) {
         return Some(w);
     }
 
@@ -191,19 +194,34 @@ pub fn parse_requirement(req: &str) -> (String, Option<String>) {
     let req = req.trim();
 
     if let Some(pos) = req.find(">=") {
-        return (req[..pos].trim().to_string(), Some(req[pos..].trim().to_string()));
+        return (
+            req[..pos].trim().to_string(),
+            Some(req[pos..].trim().to_string()),
+        );
     }
     if let Some(pos) = req.find("<=") {
-        return (req[..pos].trim().to_string(), Some(req[pos..].trim().to_string()));
+        return (
+            req[..pos].trim().to_string(),
+            Some(req[pos..].trim().to_string()),
+        );
     }
     if let Some(pos) = req.find("==") {
-        return (req[..pos].trim().to_string(), Some(req[pos..].trim().to_string()));
+        return (
+            req[..pos].trim().to_string(),
+            Some(req[pos..].trim().to_string()),
+        );
     }
     if let Some(pos) = req.find("!=") {
-        return (req[..pos].trim().to_string(), Some(req[pos..].trim().to_string()));
+        return (
+            req[..pos].trim().to_string(),
+            Some(req[pos..].trim().to_string()),
+        );
     }
     if let Some(pos) = req.find("~=") {
-        return (req[..pos].trim().to_string(), Some(req[pos..].trim().to_string()));
+        return (
+            req[..pos].trim().to_string(),
+            Some(req[pos..].trim().to_string()),
+        );
     }
 
     let name = req
