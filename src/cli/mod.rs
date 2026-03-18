@@ -142,6 +142,9 @@ pub enum Commands {
         json: bool,
     },
 
+    #[command(about = "Display a tree of dependencies")]
+    Tree,
+
     #[command(subcommand, about = "Manage caches")]
     Cache(CacheCommands),
 

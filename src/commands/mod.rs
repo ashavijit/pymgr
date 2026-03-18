@@ -12,4 +12,5 @@ pub mod run;
 pub mod self_update;
 pub mod shell;
 pub mod snapshot;
+pub mod tree;
 pub mod workspace;

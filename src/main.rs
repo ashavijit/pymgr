@@ -167,6 +167,10 @@ async fn run(cli: Cli) -> PymgrResult<()> {
             commands::audit::exec(json).await?;
         }
 
+        Commands::Tree => {
+            commands::tree::exec()?;
+        }
+
         Commands::Cache(subcmd) => match subcmd {
             CacheCommands::Clear { target } => commands::cache_cmd::exec_clear(target.as_deref())?,
             CacheCommands::Gc {
